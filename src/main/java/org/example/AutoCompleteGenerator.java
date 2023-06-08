@@ -21,7 +21,7 @@ public class AutoCompleteGenerator {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String suffix = " *";
+    private static final String suffix = "*";
 
     public AutoCompleteGenerator(RedisTemplate redisTemplate, String filePath, String key){
         this.redisTemplate = redisTemplate;
