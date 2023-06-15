@@ -21,7 +21,9 @@ public class AutoCompleteGenerator {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String suffix = "*";
+    private static final String WORD_SUFFIX = "*";
+
+    private static final String SEARCH_COUNT_SUFFIX = "-search-count";
 
     public AutoCompleteGenerator(RedisTemplate redisTemplate, String filePath, String key){
         this.redisTemplate = redisTemplate;
@@ -30,6 +32,7 @@ public class AutoCompleteGenerator {
     }
 
     public void start() {
+        reset();
         List<String> wordList = getWordListByTextFile();
 
         for(String word : wordList){
@@ -38,7 +41,8 @@ public class AutoCompleteGenerator {
                 String cutWord = word.substring(0,i);
                 putWordToRedis(cutWord);
             }
-            putWordToRedis(word+suffix);
+            putWordToRedis(word+WORD_SUFFIX);
+            putWordSearchCountToRedis(word);
         }
         getWordToRedis();
     }
@@ -74,5 +78,15 @@ public class AutoCompleteGenerator {
     private void getWordToRedis(){
         ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
         System.out.println(zSetOperations.range(key, 0, -1));
+    }
+
+    private void reset(){
+        ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
+        zSetOperations.removeRange(key,0,-1);
+        zSetOperations.removeRange(key+SEARCH_COUNT_SUFFIX,0,-1);
+    }
+    private void putWordSearchCountToRedis(String word){
+        ZSetOperations<String, Object> zSetOperations = redisTemplate.opsForZSet();
+        zSetOperations.add(key+SEARCH_COUNT_SUFFIX, word, 0);
     }
 }
